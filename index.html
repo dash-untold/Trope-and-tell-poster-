@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trope and Tell — Book Post Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #C9A0A0;
+    --rose-light: #EFE3E3;
+    --charcoal: #2C2C2C;
+    --mid-grey: #6B6B6B;
+    --rule: #E4DCDC;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 2.5rem 1.5rem 5rem;
+    background: #ffffff;
+    color: var(--charcoal);
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .wrap {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .subtitle {
+    color: var(--mid-grey);
+    margin: 0 0 2rem;
+    font-size: 0.95rem;
+  }
+
+  details.settings {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 2rem;
+    background: var(--rose-light);
+  }
+
+  details.settings summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-family: 'Lora', serif;
+    color: var(--charcoal);
+  }
+
+  details.settings .settings-body {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  details.settings p.hint {
+    font-size: 0.8rem;
+    color: var(--mid-grey);
+    margin: 0.2rem 0 0;
+  }
+
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 1.6rem;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .req::after {
+    content: " *";
+    color: var(--rose);
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  input[type="date"],
+  input[type="password"],
+  select,
+  textarea {
+    width: 100%;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.95rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--charcoal);
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px var(--rose-light);
+  }
+
+  textarea {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .field {
+    margin-bottom: 1.4rem;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+
+  /* Star picker */
+  .stars {
+    display: inline-flex;
+    gap: 0.15rem;
+  }
+
+  .star {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .star .star-bg,
+  .star .star-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .star .star-bg { color: var(--rule); }
+
+  .star .star-fill {
+    width: 0%;
+    overflow: hidden;
+    color: var(--rose);
+  }
+
+  .star .half-hit,
+  .star .full-hit {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+  }
+
+  .star .half-hit { left: 0; }
+  .star .full-hit { left: 50%; }
+
+  .rating-readout {
+    margin-left: 0.75rem;
+    font-weight: 600;
+    color: var(--mid-grey);
+    vertical-align: middle;
+  }
+
+  .tag-pill {
+    display: inline-block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: var(--rose-light);
+    color: var(--charcoal);
+    margin: 0 0.3rem 0.3rem 0;
+  }
+
+  .helper {
+    font-size: 0.8rem;
+    color: var(--mid-grey);
+    margin-top: 0.3rem;
+  }
+
+  button.submit {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    background: var(--charcoal);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.9rem 1.6rem;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  button.submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .status {
+    margin-top: 1.2rem;
+    padding: 1rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    display: none;
+  }
+
+  .status.show { display: block; }
+
+  .status.info {
+    background: var(--rose-light);
+    color: var(--charcoal);
+  }
+
+  .status.error {
+    background: #FBEAEA;
+    color: #8A2C2C;
+    border: 1px solid #E3B4B4;
+  }
+
+  .status.success {
+    background: #EAF5EC;
+    color: #295C36;
+    border: 1px solid #B6DCC0;
+  }
+
+  .status a {
+    color: inherit;
+    font-weight: 600;
+  }
+
+  hr.rule {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 2rem 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Trope and Tell</h1>
+  <p class="subtitle">Book post builder — draft your daily recommendation and send it straight to Ghost.</p>
+
+  <details class="settings" id="settingsPanel">
+    <summary>API settings</summary>
+    <div class="settings-body">
+      <div>
+        <label for="ghostUrl">Ghost site URL</label>
+        <input type="text" id="ghostUrl" value="https://trope-and-tell.ghost.io">
+      </div>
+      <div>
+        <label for="ghostKey">Ghost Admin API key</label>
+        <input type="password" id="ghostKey" placeholder="id:secret" autocomplete="off">
+        <p class="hint">From Ghost Admin → Settings → Integrations. Stored only in this browser's local storage, never in this file.</p>
+      </div>
+      <div>
+        <label for="anthropicKey">Anthropic API key</label>
+        <input type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off">
+        <p class="hint">Used to generate the review text with Claude. Also stored only in local storage.</p>
+      </div>
+      <p class="hint">This app must be opened via a local web server (e.g. <code>http://localhost:8000</code>), not by double-clicking the file — Ghost's API blocks requests from <code>file://</code> pages. See the note at the bottom of this page.</p>
+    </div>
+  </details>
+
+  <form id="postForm">
+    <div class="field">
+      <label class="req" for="title">Book title</label>
+      <input type="text" id="title" required>
+    </div>
+
+    <div class="field">
+      <label class="req" for="author">Author name</label>
+      <input type="text" id="author" required>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label class="req" for="dayNumber">Day number</label>
+        <input type="number" id="dayNumber" min="1" max="365" required>
+      </div>
+      <div class="field">
+        <label for="scheduledDate">Scheduled publish date</label>
+        <input type="date" id="scheduledDate">
+        <p class="helper">Leave blank to save as a draft.</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="req">Star rating</label>
+      <div>
+        <span class="stars" id="starPicker"></span>
+        <span class="rating-readout" id="ratingReadout">No rating</span>
+      </div>
+      <input type="hidden" id="rating" value="">
+    </div>
+
+    <div class="field">
+      <label class="req" for="notes">Review notes</label>
+      <textarea id="notes" required placeholder="Jot down your honest thoughts — Claude will turn these into a proper review."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="contentWarnings">Content warnings</label>
+      <input type="text" id="contentWarnings" placeholder="Optional">
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label for="seriesInfo">Series info</label>
+        <input type="text" id="seriesInfo" placeholder='e.g. "Standalone" or "Book 1 of 3"'>
+      </div>
+      <div class="field">
+        <label for="christianRomance">Christian romance</label>
+        <select id="christianRomance">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="amazonLink">Amazon affiliate link</label>
+      <input type="url" id="amazonLink" placeholder="Optional">
+    </div>
+
+    <div class="field">
+      <label for="coverImageUrl">Cover image URL</label>
+      <input type="url" id="coverImageUrl" placeholder="Optional — direct image link, used as the post's feature image">
+      <p class="helper">To get this — go to the Amazon listing, right-click the book cover image, click "Copy Image Address", and paste it here.</p>
+    </div>
+
+    <p class="helper" style="margin-bottom:1.4rem;">Trope tags are no longer picked manually — Claude selects them automatically based on the book title, author, and your notes.</p>
+
+    <hr class="rule">
+
+    <button type="submit" class="submit" id="submitBtn">Generate &amp; post to Ghost</button>
+
+    <div class="status" id="status"></div>
+  </form>
+
+</div>
+
+<script>
+const MASTER_TROPES = [
+  "marriage of convenience", "marriage in trouble", "second chance", "friends to lovers",
+  "enemies to lovers", "slow burn", "forced proximity", "fake dating", "small town",
+  "single dad", "grumpy sunshine", "he falls first", "amnesia", "royal romance",
+  "dual pov", "sports romance", "workplace romance", "widow romance", "epistolary",
+  "grief", "faith restoration", "found family", "cowboy romance", "historical romance",
+  "already married", "love triangle", "books about books", "mistaken identity",
+  "forbidden romance"
+];
+
+let currentRating = 0;
+
+/* ---------- Settings persistence ---------- */
+const settingsFields = {
+  ghostUrl: 'ttp_ghost_url',
+  ghostKey: 'ttp_ghost_key',
+  anthropicKey: 'ttp_anthropic_key'
+};
+
+for (const [fieldId, storageKey] of Object.entries(settingsFields)) {
+  const el = document.getElementById(fieldId);
+  const saved = localStorage.getItem(storageKey);
+  if (saved) el.value = saved;
+  el.addEventListener('change', () => localStorage.setItem(storageKey, el.value.trim()));
+}
+
+/* ---------- Star picker ---------- */
+const starPicker = document.getElementById('starPicker');
+const ratingInput = document.getElementById('rating');
+const ratingReadout = document.getElementById('ratingReadout');
+const starEls = [];
+
+for (let i = 1; i <= 5; i++) {
+  const star = document.createElement('span');
+  star.className = 'star';
+
+  const bg = document.createElement('span');
+  bg.className = 'star-bg';
+  bg.textContent = '★';
+
+  const fill = document.createElement('span');
+  fill.className = 'star-fill';
+  fill.textContent = '★';
+
+  const halfHit = document.createElement('span');
+  halfHit.className = 'half-hit';
+  halfHit.addEventListener('click', () => setRating(i - 0.5));
+
+  const fullHit = document.createElement('span');
+  fullHit.className = 'full-hit';
+  fullHit.addEventListener('click', () => setRating(i));
+
+  star.append(bg, fill, halfHit, fullHit);
+  starPicker.appendChild(star);
+  starEls.push(fill);
+}
+
+function setRating(value) {
+  currentRating = value;
+  ratingInput.value = value;
+  ratingReadout.textContent = `${value} / 5`;
+  starEls.forEach((fillEl, idx) => {
+    const starIndex = idx + 1;
+    let pct = 0;
+    if (value >= starIndex) pct = 100;
+    else if (value >= starIndex - 0.5) pct = 50;
+    fillEl.style.width = pct + '%';
+  });
+}
+
+/* ---------- Helpers ---------- */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function hexToBytes(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+  }
+  return bytes;
+}
+
+function base64url(input) {
+  let base64;
+  if (typeof input === 'string') {
+    base64 = btoa(unescape(encodeURIComponent(input)));
+  } else {
+    const bytes = new Uint8Array(input);
+    let binary = '';
+    for (const b of bytes) binary += String.fromCharCode(b);
+    base64 = btoa(binary);
+  }
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function generateGhostToken(apiKey) {
+  const [id, secretHex] = apiKey.split(':');
+  if (!id || !secretHex) throw new Error('Ghost Admin API key must be in the format "id:secret".');
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: 'HS256', typ: 'JWT', kid: id };
+  const payload = { iat: now, exp: now + 300, aud: '/admin/' };
+  const unsigned = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(payload))}`;
+  const keyBytes = hexToBytes(secretHex);
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', keyBytes, { name: 'HMAC', hash: { name: 'SHA-256' } }, false, ['sign']
+  );
+  const sigBuf = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(unsigned));
+  return `${unsigned}.${base64url(sigBuf)}`;
+}
+
+function starsPlainText(rating) {
+  const full = Math.floor(rating);
+  const half = rating % 1 !== 0;
+  let s = '★'.repeat(full);
+  if (half) s += '½';
+  s += '☆'.repeat(5 - full - (half ? 1 : 0));
+  return s;
+}
+
+function toSentenceCase(str) {
+  const lower = str.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
+function buildContentWarningSentence(rawWarnings) {
+  return toSentenceCase(`a note before you pick this one up: ${rawWarnings.toLowerCase()}.`);
+}
+
+/* ---------- Claude review generation ---------- */
+function buildReviewSystemPrompt() {
+  return `You are a warm, honest romance book reviewer writing for a blog called Trope and Tell. You write in a personal, conversational, genuine tone, like a real reader talking to a friend about a book, never like marketing copy.
+
+Strict formatting rules for the review text, no exceptions:
+- Never use an em dash or en dash anywhere in your writing.
+- Never use bullet points, numbered lists, or markdown of any kind (no asterisks, no headers, no hyphens used as bullets).
+- Write only in plain paragraphs, separated by a blank line.
+- Do not include a title, greeting, sign-off, or any closing disclaimer. Only write the review body itself.
+
+Structure the review body as:
+1. A short opening that draws the reader in (1-2 sentences).
+2. A brief, spoiler-free plot setup (2-3 sentences).
+3. Honest thoughts based on the reader's own notes (2-3 paragraphs).
+
+You also have a second task: selecting trope tags. Use whatever you actually know about this specific book (its plot, characters, and the tropes readers commonly associate with it) combined with the reader's own notes to decide which tags from the approved master list genuinely apply. Only choose tags you are reasonably confident about. If you don't recognize the book at all, rely only on the reader's notes, and it is completely fine to return few tags or none rather than guessing.
+
+Call the submit_review tool with your finished review and your selected tags. Do not output anything outside of that tool call.`;
+}
+
+function buildReviewUserPrompt(data) {
+  return `Book title: ${data.title}
+Author: ${data.author}
+Star rating out of 5: ${data.rating}
+Series info: ${data.seriesInfo || 'not specified'}
+Content warnings noted by the reader: ${data.contentWarnings || 'none noted'}
+
+Reader's raw notes about the book:
+"""
+${data.notes}
+"""
+
+Approved master trope list (only select tags from this exact list):
+${MASTER_TROPES.join(', ')}
+
+Write the review body and select the applicable trope tags now, then call submit_review.`;
+}
+
+function sanitizeReviewText(text) {
+  return text
+    .replace(/[—–]/g, ' - ')
+    .replace(/\*\*/g, '')
+    .replace(/^#+\s*/gm, '')
+    .trim();
+}
+
+async function generateReview(anthropicKey, data) {
+  const tool = {
+    name: 'submit_review',
+    description: 'Submit the finished review text and the trope tags selected from the approved master list.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        review: {
+          type: 'string',
+          description: 'The finished review body: plain paragraphs separated by blank lines, following all the formatting rules.'
+        },
+        tropes: {
+          type: 'array',
+          description: 'Trope tags from the approved master list that genuinely apply to this book. Can be empty if none clearly apply.',
+          items: { type: 'string', enum: MASTER_TROPES }
+        }
+      },
+      required: ['review', 'tropes']
+    }
+  };
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      system: buildReviewSystemPrompt(),
+      tools: [tool],
+      tool_choice: { type: 'tool', name: 'submit_review' },
+      messages: [{ role: 'user', content: buildReviewUserPrompt(data) }]
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Claude API error (${res.status}): ${errText}`);
+  }
+
+  const json = await res.json();
+  const toolUse = json.content?.find(block => block.type === 'tool_use');
+  if (!toolUse) throw new Error('Claude API did not return the expected structured response.');
+
+  const reviewText = sanitizeReviewText(toolUse.input?.review || '');
+  const tropes = Array.isArray(toolUse.input?.tropes) ? toolUse.input.tropes : [];
+  if (!reviewText) throw new Error('Claude API returned no review text.');
+
+  return { reviewText, tropes };
+}
+
+/* ---------- Ghost post assembly ---------- */
+function buildRatingClosingLine(rating) {
+  return rating >= 5
+    ? 'This is a 5-star read for me, and I think it could be for you too.'
+    : "Not a 5-star read for me, but a rating is just one reader's experience. If the tropes above are your thing, this could be exactly what you're looking for. I'd rather share it than gatekeep it.";
+}
+
+function buildPostHtml(data, reviewText, tropes) {
+  const dayPadded = String(data.dayNumber).padStart(3, '0');
+  const paragraphs = reviewText
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(Boolean);
+  paragraphs.push(buildRatingClosingLine(data.rating));
+
+  const reviewHtml = paragraphs
+    .map(p => `<p style="font-family:Manrope,sans-serif;color:#2C2C2C;line-height:1.7;margin:0 0 1.1rem;">${escapeHtml(p)}</p>`)
+    .join('\n');
+
+  const metaParts = ['Closed door / No spice'];
+  if (data.seriesInfo) metaParts.push(escapeHtml(data.seriesInfo));
+  if (data.christianRomance) metaParts.push('Christian romance');
+  const metaLine = metaParts.join(' | ');
+
+  const chipsHtml = tropes
+    .map(t => `<span style="display:inline-block;background:#EFE3E3;color:#2C2C2C;border-radius:999px;padding:0.3rem 0.8rem;margin:0 0.4rem 0.4rem 0;font-family:Manrope,sans-serif;font-size:0.82rem;">${escapeHtml(t)}</span>`)
+    .join('');
+
+  const warningBlock = data.contentWarnings
+    ? `<div style="border-left:3px solid #C9A0A0;padding-left:1rem;font-style:italic;color:#6B6B6B;margin:1.5rem 0;font-family:Manrope,sans-serif;">${escapeHtml(buildContentWarningSentence(data.contentWarnings))}</div>`
+    : '';
+
+  const amazonBlock = data.amazonLink
+    ? `<p style="margin:1.5rem 0;"><a href="${escapeHtml(data.amazonLink)}" target="_blank" rel="sponsored nofollow noopener" style="display:inline-block;background:#2C2C2C;color:#ffffff;padding:0.75rem 1.5rem;border-radius:4px;text-decoration:none;font-family:Manrope,sans-serif;">Find it on Amazon →</a></p>`
+    : '';
+
+  const disclosureBlock = data.amazonLink
+    ? `<p style="font-size:0.85rem;color:#6B6B6B;margin-top:2rem;font-family:Manrope,sans-serif;">This post contains affiliate links. If you purchase through my link, I may earn a small commission at no extra cost to you, it helps keep Trope and Tell going. Thank you.</p>`
+    : '';
+
+  return `
+<p style="font-family:Manrope,sans-serif;font-size:0.8rem;letter-spacing:1px;text-transform:uppercase;color:#6B6B6B;margin:0 0 0.6rem;">Daily Recommendation &middot; No. ${dayPadded}</p>
+<p style="margin:0 0 0.8rem;"><span style="font-family:Manrope,sans-serif;font-size:22px;color:#C9A0A0;letter-spacing:2px;">${starsPlainText(data.rating)}</span> <span style="font-family:Manrope,sans-serif;font-weight:600;color:#2C2C2C;margin-left:0.5rem;">${data.rating}/5 stars</span></p>
+<p style="font-family:Manrope,sans-serif;color:#6B6B6B;font-size:0.9rem;margin:0 0 1rem;">${metaLine}</p>
+<p style="margin:0 0 1.4rem;">${chipsHtml}</p>
+<hr style="border:none;border-top:1px solid #E4DCDC;margin:1.6rem 0;">
+${reviewHtml}
+${warningBlock}
+${amazonBlock}
+${disclosureBlock}`.trim();
+}
+
+async function createGhostPost(ghostUrl, apiKey, postPayload) {
+  const token = await generateGhostToken(apiKey);
+  const base = ghostUrl.replace(/\/+$/, '');
+  const res = await fetch(`${base}/ghost/api/admin/posts/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Ghost ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ posts: [postPayload] })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Ghost API error (${res.status}): ${errText}`);
+  }
+
+  return res.json();
+}
+
+/* ---------- Form handling ---------- */
+const form = document.getElementById('postForm');
+const submitBtn = document.getElementById('submitBtn');
+const statusEl = document.getElementById('status');
+
+function showStatus(kind, html) {
+  statusEl.className = `status show ${kind}`;
+  statusEl.innerHTML = html;
+}
+
+function hideStatus() {
+  statusEl.className = 'status';
+  statusEl.innerHTML = '';
+}
+
+function readForm() {
+  return {
+    title: document.getElementById('title').value.trim(),
+    author: document.getElementById('author').value.trim(),
+    dayNumber: document.getElementById('dayNumber').value.trim(),
+    rating: currentRating,
+    notes: document.getElementById('notes').value.trim(),
+    contentWarnings: document.getElementById('contentWarnings').value.trim(),
+    seriesInfo: document.getElementById('seriesInfo').value.trim(),
+    christianRomance: document.getElementById('christianRomance').value === 'yes',
+    amazonLink: document.getElementById('amazonLink').value.trim(),
+    coverImageUrl: document.getElementById('coverImageUrl').value.trim(),
+    scheduledDate: document.getElementById('scheduledDate').value
+  };
+}
+
+function validate(data) {
+  const missing = [];
+  if (!data.title) missing.push('book title');
+  if (!data.author) missing.push('author name');
+  if (!data.dayNumber) missing.push('day number');
+  if (!data.rating) missing.push('star rating');
+  if (!data.notes) missing.push('review notes');
+  return missing;
+}
+
+function resetForm() {
+  form.reset();
+  setRating(0);
+  ratingReadout.textContent = 'No rating';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideStatus();
+
+  const ghostUrl = document.getElementById('ghostUrl').value.trim();
+  const ghostKey = document.getElementById('ghostKey').value.trim();
+  const anthropicKey = document.getElementById('anthropicKey').value.trim();
+
+  if (!ghostUrl || !ghostKey || !anthropicKey) {
+    showStatus('error', 'Please fill in the Ghost site URL, Ghost Admin API key, and Anthropic API key in the API settings panel above.');
+    document.getElementById('settingsPanel').open = true;
+    return;
+  }
+
+  const data = readForm();
+  const missing = validate(data);
+  if (missing.length) {
+    showStatus('error', `Please fill in: ${missing.join(', ')}.`);
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Generating review...';
+  showStatus('info', 'Asking Claude to write the review and pick trope tags...');
+
+  try {
+    const { reviewText, tropes } = await generateReview(anthropicKey, data);
+    const featureImage = data.coverImageUrl || null;
+
+    submitBtn.textContent = 'Publishing to Ghost...';
+    showStatus('info', 'Publishing to Ghost...');
+
+    const bodyHtml = buildPostHtml(data, reviewText, tropes);
+    const lexicalDoc = {
+      root: {
+        children: [{ type: 'html', version: 1, html: bodyHtml }],
+        direction: null, format: '', indent: 0, type: 'root', version: 1
+      }
+    };
+
+    const title = `Day ${data.dayNumber} — ${data.title} by ${data.author}`;
+    const excerptTropes = tropes.slice(0, 3).join(' · ');
+    const customExcerpt = `${starsPlainText(data.rating)} — ${excerptTropes}`.slice(0, 300);
+
+    const tagNames = [
+      'daily recommendation',
+      'no spice',
+      'closed door',
+      data.christianRomance ? 'christian romance' : 'clean romance',
+      ...tropes
+    ];
+
+    const postPayload = {
+      title,
+      lexical: JSON.stringify(lexicalDoc),
+      custom_excerpt: customExcerpt,
+      tags: tagNames.map(name => ({ name }))
+    };
+
+    if (featureImage) postPayload.feature_image = featureImage;
+
+    if (data.scheduledDate) {
+      const publishedAt = new Date(`${data.scheduledDate}T09:00:00`);
+      postPayload.status = 'scheduled';
+      postPayload.published_at = publishedAt.toISOString();
+    } else {
+      postPayload.status = 'draft';
+    }
+
+    const result = await createGhostPost(ghostUrl, ghostKey, postPayload);
+    const post = result.posts[0];
+    const editorUrl = `${ghostUrl.replace(/\/+$/, '')}/ghost/#/editor/post/${post.id}`;
+
+    const tagsSummary = tropes.length
+      ? `<br>Tags applied: ${tropes.map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('')}`
+      : '<br>No trope tags were confidently matched for this book.';
+    const imageNote = featureImage
+      ? ''
+      : '<br><em>No cover image URL was provided, so this post has no feature image.</em>';
+
+    showStatus('success', `Saved "${escapeHtml(post.title)}" as a ${escapeHtml(post.status)}. <a href="${editorUrl}" target="_blank" rel="noopener">Open in Ghost editor →</a>${tagsSummary}${imageNote}`);
+    resetForm();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    console.error(err);
+    showStatus('error', escapeHtml(err.message || 'Something went wrong.'));
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Generate & post to Ghost';
+  }
+});
+</script>
+</body>
+</html>
