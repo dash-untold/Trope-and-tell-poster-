@@ -494,6 +494,40 @@ function buildContentWarningSentence(rawWarnings) {
 }
 
 /* ---------- Claude review generation ---------- */
+async function callClaudeApi(anthropicKey, payload) {
+  const body = JSON.stringify(payload);
+
+  // Prefer the local proxy (server.js) so the browser never has to call
+  // Anthropic directly and never hits a CORS wall. If no proxy is present
+  // (e.g. this page is served as static files with no backend, like on
+  // GitHub Pages), fall back to calling the API directly from the browser.
+  let res = null;
+  try {
+    res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'x-api-key': anthropicKey, 'content-type': 'application/json' },
+      body
+    });
+  } catch (err) {
+    res = null;
+  }
+
+  if (!res || res.status === 404) {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json'
+      },
+      body
+    });
+  }
+
+  return res;
+}
+
 function buildReviewSystemPrompt() {
   return `You are a warm, honest romance book reviewer writing for a blog called Trope and Tell. You write in a personal, conversational, genuine tone, like a real reader talking to a friend about a book, never like marketing copy.
 
@@ -560,22 +594,13 @@ async function generateReview(anthropicKey, data) {
     }
   };
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1500,
-      system: buildReviewSystemPrompt(),
-      tools: [tool],
-      tool_choice: { type: 'tool', name: 'submit_review' },
-      messages: [{ role: 'user', content: buildReviewUserPrompt(data) }]
-    })
+  const res = await callClaudeApi(anthropicKey, {
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1500,
+    system: buildReviewSystemPrompt(),
+    tools: [tool],
+    tool_choice: { type: 'tool', name: 'submit_review' },
+    messages: [{ role: 'user', content: buildReviewUserPrompt(data) }]
   });
 
   if (!res.ok) {
@@ -646,17 +671,31 @@ ${amazonBlock}
 ${disclosureBlock}`.trim();
 }
 
+async function callGhostApi(ghostUrl, token, payload) {
+  const body = JSON.stringify(payload);
+  const headers = { 'Authorization': `Ghost ${token}`, 'Content-Type': 'application/json' };
+
+  // Prefer the local proxy (server.js), which forwards to the real
+  // Ghost.io Admin API and avoids CORS entirely. Fall back to calling
+  // Ghost directly if no proxy is available (e.g. static hosting).
+  let res = null;
+  try {
+    res = await fetch('/api/ghost', { method: 'POST', headers, body });
+  } catch (err) {
+    res = null;
+  }
+
+  if (!res || res.status === 404) {
+    const base = ghostUrl.replace(/\/+$/, '');
+    res = await fetch(`${base}/ghost/api/admin/posts/`, { method: 'POST', headers, body });
+  }
+
+  return res;
+}
+
 async function createGhostPost(ghostUrl, apiKey, postPayload) {
   const token = await generateGhostToken(apiKey);
-  const base = ghostUrl.replace(/\/+$/, '');
-  const res = await fetch(`${base}/ghost/api/admin/posts/`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Ghost ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ posts: [postPayload] })
-  });
+  const res = await callGhostApi(ghostUrl, token, { posts: [postPayload] });
 
   if (!res.ok) {
     const errText = await res.text();

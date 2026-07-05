@@ -1,0 +1,16 @@
+{
+  "name": "trope-and-tell-post-builder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local server for the Trope and Tell book post builder. Serves the app and proxies Ghost/Anthropic API calls to avoid browser CORS issues.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
